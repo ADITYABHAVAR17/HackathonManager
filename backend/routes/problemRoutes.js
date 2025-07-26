@@ -25,7 +25,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 // Delete a problem by ID (Admin only)
 router.delete("/:id", protect, adminOnly, async (req, res) => {
   try {
@@ -36,5 +35,6 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;
