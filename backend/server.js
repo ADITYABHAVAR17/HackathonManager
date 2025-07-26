@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
+const teamRoutes = require("./routes/teamRoute");
+const problemRoutes = require("./routes/problemRoutes");
+const submissionRoutes = require("./routes/submissionRoutes");
 
 const app = express();
 dotenv.config();
@@ -18,6 +21,10 @@ app.get("/", (req, res) => {
 });
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.use("/api/teams", teamRoutes);
+app.use("/api/problems", problemRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 // Connect DB and start server
 const PORT = process.env.PORT || 5000;
