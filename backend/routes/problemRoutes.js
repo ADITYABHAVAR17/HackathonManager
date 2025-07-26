@@ -15,6 +15,31 @@ router.post("/", protect, adminOnly, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// Get a problem by ID (visible to all)
+router.get("/:id", async (req, res) => {
+  try {
+    const problem = await Problem.findById(req.params.id);
+    if (!problem) return res.status(404).json({ message: "Problem not found" });
+    res.json(problem);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// Update a problem by ID (Admin only)
+router.put("/:id", protect, adminOnly, async (req, res) => {
+  const { title, description, domain, difficulty, tags } = req.body;
+  try {
+    const problem = await Problem.findByIdAndUpdate(
+      req.params.id,
+      { title, description, domain, difficulty, tags },
+      { new: true }
+    );
+    if (!problem) return res.status(404).json({ message: "Problem not found" });
+    res.json({ message: "Problem updated", problem });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // Get all problems (visible to all)
 router.get("/", async (req, res) => {

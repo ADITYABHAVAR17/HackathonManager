@@ -8,5 +8,6 @@ router.post("/login", authController.login);
 router.get("/verify", authController.verify);
 router.post("/forgotpassword", authController.forgotPassword);
 router.put("/resetpassword/:resettoken", authController.resetPassword);
+// router.get("/member", authController.getMemberDetails);
 
 module.exports = router;

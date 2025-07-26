@@ -5,11 +5,27 @@ const User = require("../models/User");
 const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
+// Get Member Details
+router.get("/member",  async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.findOne({ email }).select(
+      "email teamId name role _id"
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+    //return member details
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.post("/register", protect, async (req, res) => {
   const { teamName, institute, members } = req.body;
   try {
     const exists = await Team.findOne({ teamName });
-    if (exists) return res.status(400).json({ message: "Team name already exists" });
+    if (exists)
+      return res.status(400).json({ message: "Team name already exists" });
 
     // Fetch and attach email for each userId
     const memberDetails = await Promise.all(

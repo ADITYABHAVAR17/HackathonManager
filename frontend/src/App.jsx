@@ -9,6 +9,8 @@ import AdminDashboard from "./pages/Admin/Dashboard";
 import UserDashboard from "./pages/User/UserDashboard";
 import JudgeDashboard from "./pages/Judge/JudgeDashboard";
 import { Navigate } from "react-router-dom";
+import Home from "./pages/common/Home";
+import ProblemCard from "./pages/common/ProductCard";
 
 function App() {
   return (
@@ -16,6 +18,9 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Auth Routes */}
+          <Route path="/home" element={<Home/>} />
+         
+          <Route path="/problems/:id" element={<ProblemCard />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
 
