@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       setToken(token);
       localStorage.setItem("token", token);
-      console.log(user)
+      console.log(user);
       // Redirect based on role
       switch (user.role) {
         case "admin":

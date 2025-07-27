@@ -2,6 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail"); // You'll need to implement this
+const { text } = require("stream/consumers");
 // JWT generator utility
 const generateToken = (user) => {
   return jwt.sign(
@@ -161,9 +162,9 @@ const authController = {
       console.log(message);
       try {
         await sendEmail({
-          email: user.email,
+          to: user.email,
           subject: "Password Reset Token",
-          message,
+          text: message,
         });
 
         res.status(200).json({ success: true, data: "Email sent" });
@@ -181,3 +182,4 @@ const authController = {
 };
 
 module.exports = authController;
+

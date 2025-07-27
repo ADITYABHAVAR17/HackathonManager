@@ -11,15 +11,27 @@ import JudgeDashboard from "./pages/Judge/JudgeDashboard";
 import { Navigate } from "react-router-dom";
 import Home from "./pages/common/Home";
 import ProblemCard from "./pages/common/ProductCard";
+import Forgot from "./pages/Auth/Forgot";
+import ResetPass from "./pages/Auth/ResetPass";
 
 function App() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+
+  if (token) {
+    localStorage.setItem("token", token);
+    window.location.href = "/user"; // or appropriate route
+  }
+
   return (
     <Router>
       <AuthProvider>
         <Routes>
           {/* Auth Routes */}
-          <Route path="/home" element={<Home/>} />
-         
+          <Route path="/home" element={<Home />} />
+          <Route path="/auth/forgot-password" element={<Forgot />} />
+          <Route path="/auth/resetpassword/:id" element={<ResetPass />} />
+
           <Route path="/problems/:id" element={<ProblemCard />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />

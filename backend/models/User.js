@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["admin", "judge", "team"], default: "team" },
   teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
   resetPasswordToken: String,
+  picture: String,
+  googleId: String, // For Google OAuth
   resetPasswordExpire: Date,
   createdAt: { type: Date, default: Date.now },
 });

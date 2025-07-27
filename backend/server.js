@@ -8,6 +8,9 @@ const authRoutes = require("./routes/authRoute");
 const teamRoutes = require("./routes/teamRoute");
 const problemRoutes = require("./routes/problemRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
+require("./middleware/googleAuth"); // import Google strategy
+const session = require("express-session"); // ✅ ADD THIS
+const passport = require("passport");
 
 const app = express();
 dotenv.config();
@@ -19,6 +22,17 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Welcome to the Hackathon Portal API");
 });
+
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 // Routes
 app.use("/api/auth", authRoutes);
 
