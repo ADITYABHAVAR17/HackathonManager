@@ -12,13 +12,20 @@ require("./middleware/googleAuth"); // import Google strategy
 const session = require("express-session"); // ✅ ADD THIS
 const passport = require("passport");
 
+require("./middleware/githubAuth"); // import GitHub strategy
+require("./middleware/microsoftAuth"); // import Microsoft strategy
+// require("./middleware/googleStrategy");
+require("./middleware/facebookAuth"); // import Facebook strategy
+const initPassportSerialization = require("./middleware/passportSerialization");
+
 const app = express();
+app.use(passport.initialize());
 dotenv.config();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
-
+initPassportSerialization(passport);
 app.get("/", (req, res) => {
   res.send("Welcome to the Hackathon Portal API");
 });
