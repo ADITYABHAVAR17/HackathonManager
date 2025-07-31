@@ -19,11 +19,9 @@ const SubmitSolution = () => {
   });
   const [isRegistered, setIsRegistered] = useState(false);
 
-  // Fetch user data and check registration status
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get user data
         const userResponse = await axios.get("/api/auth/me", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -31,7 +29,6 @@ const SubmitSolution = () => {
         });
         setUser(userResponse.data.user);
 
-        // If team wasn't passed in state, fetch it
         if (!team && userResponse.data.user.teamId) {
           const teamResponse = await axios.get(
             `/api/teams/${userResponse.data.user.teamId}`,
@@ -45,22 +42,22 @@ const SubmitSolution = () => {
         }
 
         // Check if team is already registered for this problem
-        if (team || userResponse.data.user.teamId) {
-          const teamId = team?._id || userResponse.data.user.teamId;
-          const submissionResponse = await axios.get(
-            `/api/submissions?teamId=${teamId}&problemId=${problemId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
+        // if (team || userResponse.data.user.teamId) {
+        //   const teamId = team?._id || userResponse.data.user.teamId;
+        //   const submissionResponse = await axios.get(
+        //     `/api/submissions?teamId=${teamId}&problemId=${problemId}`,
+        //     {
+        //       headers: {
+        //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+        //       },
+        //     }
+        //   );
 
-          if (submissionResponse.data && submissionResponse.data.length > 0) {
-            setSubmission(submissionResponse.data[0]);
-            setIsRegistered(true);
-          }
-        }
+        //   if (submissionResponse.data && submissionResponse.data.length > 0) {
+        //     setSubmission(submissionResponse.data[0]);
+        //     setIsRegistered(true);
+        //   }
+        // }
       } catch (err) {
         setError("Failed to fetch data");
         console.error(err);
@@ -194,7 +191,7 @@ const SubmitSolution = () => {
       )}
 
       {/* Solution Submission Section */}
-      {isRegistered && (
+      {/* {isRegistered && ( */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Submit Your Solution</h2>
 
@@ -266,7 +263,7 @@ const SubmitSolution = () => {
             </p>
           )}
         </div>
-      )}
+      {/* )} */}
     </div>
   );
 };

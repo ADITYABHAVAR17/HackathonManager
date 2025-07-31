@@ -67,6 +67,38 @@ const problemSchema = new mongoose.Schema({
   startDate: { type: Date },  // Problem visibility starts
   endDate: { type: Date },    // Problem visibility ends
 
+  schedule: [
+    {
+      stage: { type: String, required: true }, 
+      startTime: { type: Date, required: true },
+      endTime: { type: Date, required: true },
+    }
+  ],
+
+  rewards: [
+    {
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      prizeAmount: { type: Number, default: 0 }, 
+      isPublic: { type: Boolean, default: true }, 
+    }
+  ],
+
+  faqs: [
+    {
+      question: { type: String, required: true },
+      answer: { type: String, required: true },
+    }
+  ],
+
+  partners: [
+    {
+      name: { type: String, required: true },
+      logoUrl: { type: String }, // URL to partner's logo
+      websiteUrl: { type: String }, // URL to partner's website
+    }
+  ],
+
   totalSubmissions: { type: Number, default: 0 },
   acceptedSubmissions: { type: Number, default: 0 },
 
