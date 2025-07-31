@@ -40,7 +40,7 @@ function ProblemCard() {
   // Function to handle registration (to be implemented)
   const handleRegister = () => {
     console.log("Registering for problem:", problem);
-    navigate("/user", { state: { problem } });
+    navigate(`/problem/${id}`);
     // Add registration logic here
   };
 

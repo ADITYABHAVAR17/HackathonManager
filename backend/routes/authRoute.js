@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const authController = require("../controllers/authController");
 
+
+// me
+router.get("/me", authController.verify);
 // 🔐 Local Auth Routes
 router.post("/register", authController.register);
 router.post("/login", authController.login);
@@ -31,15 +34,21 @@ router.get(
     );
 
     // Redirect to frontend with token (you can also send JSON if preferred)
-    res.redirect(`http://localhost:5173?token=${token}`);
+    res.redirect(`http://localhost:5173/home?token=${token}`);
   }
 );
 // 🌐 OAuth Scopes Mapping (can be extended easily)
 const OAUTH_SCOPES = {
   google: ["profile", "email"],
-  github: ["read:user user:email"],
+  github: ["read:user", "user:email"],
   microsoft: ["user.read"],
   facebook: ["email"],
+  spotify: [
+    "user-read-email",
+    "user-read-private",
+    "user-top-read", // optional: get top artists/tracks
+    "user-read-recently-played", // optional: recently played
+  ],
 };
 
 // 🚀 Route to initiate OAuth Login
@@ -77,7 +86,7 @@ router.get("/:provider/callback", (req, res, next) => {
     );
 
     // ✅ Redirect to frontend with token
-    res.redirect(`http://localhost:5173/user?token=${token}`);
+    res.redirect(`http://localhost:5173/home?token=${token}`);
   })(req, res, next);
 });
 

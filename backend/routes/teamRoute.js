@@ -6,9 +6,12 @@ const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Get Member Details
-router.get("/member",  async (req, res) => {
+router.get("/member", async (req, res) => {
   try {
-    const email = req.body.email;
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
     const user = await User.findOne({ email }).select(
       "email teamId name role _id"
     );

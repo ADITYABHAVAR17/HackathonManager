@@ -7,6 +7,7 @@ const handleOAuthUser = async (profile, provider, done) => {
     console.log(`Handling OAuth user for provider: ${provider}`);
     console.log("Profile data:", profile);
     const email = profile.emails?.[0]?.value;
+    console.log(`User email from profile: ${email}`);
     if (!email) return done(new Error(`${provider} email not available`));
 
     const existingUser = await User.findOne({ email });
@@ -18,7 +19,9 @@ const handleOAuthUser = async (profile, provider, done) => {
     const mailOptions = {
       to: email,
       subject: "Welcome to Our App!",
-      text: `Hello ${profile.displayName || profile.username},\n\nYour account has been created successfully!\n\nYour password is: ${pass}\n\nPlease change it after your first login.\n\nBest,\nYour App Team`,
+      text: `Hello ${
+        profile.displayName || profile.username
+      },\n\nYour account has been created successfully!\n\nYour password is: ${pass}\n\nPlease change it after your first login.\n\nBest,\nYour App Team`,
     };
 
     console.log(`Sending welcome email to: ${email}`);

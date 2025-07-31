@@ -13,6 +13,9 @@ import Home from "./pages/common/Home";
 import ProblemCard from "./pages/common/ProductCard";
 import Forgot from "./pages/Auth/Forgot";
 import ResetPass from "./pages/Auth/ResetPass";
+import RegisterTeam from "./components/RegisterTeam";
+import SubmitSolution from "./components/Submit";
+// import Submit from "./components/Submit";
 
 function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -20,7 +23,7 @@ function App() {
 
   if (token) {
     localStorage.setItem("token", token);
-    window.location.href = "/user"; // or appropriate route
+    window.location.href = "/home"; // or appropriate route
   }
 
   return (
@@ -28,10 +31,8 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Auth Routes */}
-          <Route path="/home" element={<Home />} />
           <Route path="/auth/forgot-password" element={<Forgot />} />
           <Route path="/auth/resetpassword/:id" element={<ResetPass />} />
-
           <Route path="/problems/:id" element={<ProblemCard />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
@@ -51,6 +52,9 @@ function App() {
             }
           >
             <Route path="/user/*" element={<UserDashboard />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/problem/:id" element={<RegisterTeam />} />
+            <Route path="/submit/:id" element={<SubmitSolution />} />
           </Route>
 
           {/* Default redirect */}

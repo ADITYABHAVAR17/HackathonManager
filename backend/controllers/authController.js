@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail"); // You'll need to implement this
 const { text } = require("stream/consumers");
+const bcrypt = require("bcryptjs");
 // JWT generator utility
 const generateToken = (user) => {
   return jwt.sign(
@@ -89,8 +90,48 @@ const authController = {
       res.status(401).json({ message: "Invalid token" });
     }
   },
+  // resetPassword: async (req, res) => {
+  //   // Get hashed token
+  //   const resetPasswordToken = crypto
+  //     .createHash("sha256")
+  //     .update(req.params.resettoken)
+  //     .digest("hex");
+
+  //   try {
+  //     const user = await User.findOne({
+  //       resetPasswordToken,
+  //       resetPasswordExpire: { $gt: Date.now() },
+  //     });
+
+  //     if (!user) {
+  //       return res.status(400).json({ message: "Invalid or expired token" });
+  //     }
+
+  //     // Set new password
+  //     user.password = req.body.password;
+  //     user.resetPasswordToken = undefined;
+  //     user.resetPasswordExpire = undefined;
+
+  //     await user.save();
+
+  //     // Create token for auto-login if desired
+  //     const token = generateToken(user);
+
+  //     res.status(200).json({
+  //       success: true,
+  //       token,
+  //       user: {
+  //         id: user._id,
+  //         email: user.email,
+  //         role: user.role,
+  //       },
+  //     });
+  //   } catch (err) {
+  //     res.status(500).json({ message: err.message });
+  //   }
+  // },
+
   resetPassword: async (req, res) => {
-    // Get hashed token
     const resetPasswordToken = crypto
       .createHash("sha256")
       .update(req.params.resettoken)
@@ -106,6 +147,25 @@ const authController = {
         return res.status(400).json({ message: "Invalid or expired token" });
       }
 
+      // Check if new password is same as current password
+      const isSameAsCurrent = await bcrypt.compare(req.body.password, user.password);
+      if (isSameAsCurrent) {
+        return res.status(400).json({
+          message: "New password cannot be the same as your current password"
+        });
+      }
+
+      // Check against other users' passwords (optimized)
+      const users = await User.find({ _id: { $ne: user._id } });
+      for (const existingUser of users) {
+        const isSame = await bcrypt.compare(req.body.password, existingUser.password);
+        if (isSame) {
+          return res.status(400).json({
+            message: "This password is already in use by another user. Please choose a different one."
+          });
+        }
+      }
+
       // Set new password
       user.password = req.body.password;
       user.resetPasswordToken = undefined;
@@ -113,12 +173,8 @@ const authController = {
 
       await user.save();
 
-      // Create token for auto-login if desired
-      const token = generateToken(user);
-
       res.status(200).json({
-        success: true,
-        token,
+        message: "Password reset successful",
         user: {
           id: user._id,
           email: user.email,
@@ -126,9 +182,11 @@ const authController = {
         },
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      console.error("Reset password error:", err);
+      res.status(500).json({ message: "Failed to reset password" });
     }
   },
+
   forgotPassword: async (req, res) => {
     const { email } = req.body;
 
@@ -147,14 +205,12 @@ const authController = {
         .createHash("sha256")
         .update(resetToken)
         .digest("hex");
-      user.resetPasswordExpire = Date.now() + 36000000; // 1 hour
+      user.resetPasswordExpire = Date.now() + 300000; // 5 minutes
 
       await user.save();
 
       // Create reset URL
-      const resetUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/api/auth/resetpassword/${resetToken}`;
+      const resetUrl = `${req.protocol}://localhost:5173/auth/resetpassword/${resetToken}`;
 
       // Email message
       const message = `You are receiving this email because you (or someone else) has requested a password reset. 
@@ -182,4 +238,3 @@ const authController = {
 };
 
 module.exports = authController;
-

@@ -1,6 +1,7 @@
 import { useAuth } from "../../context/AuthContext";
 import React from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
+import {Link} from "react-router-dom";
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
@@ -131,6 +132,16 @@ const UserDashboard = () => {
                 <p className="text-gray-600 text-sm">
                   Current problem reference
                 </p>
+
+                <button>
+                  <Link
+                    to={`/problem/${problem?._id}`}
+                    className="mt-4 inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200"
+                  >
+                    Register
+                  </Link>
+               
+                </button>
               </div>
             </div>
           </div>

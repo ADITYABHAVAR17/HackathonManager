@@ -1,18 +1,25 @@
 .admin-dashboard {
     min-height: 100vh;
     background: #f8fafc;
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-content {
     margin-top: 64px;
     min-height: calc(100vh - 64px);
+    height: calc(100vh - 64px); 
     transition: margin-left 0.3s ease;
+    flex: 1; 
+    overflow-y: auto; 
 }
 
 .content-wrapper {
     padding: 24px;
     max-width: 1200px;
     margin: 0 auto;
+    min-height: 100%; /* Ensure it takes full height of parent */
+    width: 100%;
 }
 
 /* Desktop layout */
@@ -20,7 +27,6 @@
     .admin-content {
         margin-left: 280px;
     }
-
     .admin-content.sidebar-open {
         margin-left: 280px;
     }
@@ -28,18 +34,41 @@
 
 /* Mobile and tablet responsive */
 @media (max-width: 1023px) {
+    .admin-content {
+        margin-left: 280px;
+    }
+    .admin-content.sidebar-open {
+        margin-left: 280px;
+    }
     .content-wrapper {
         padding: 16px;
     }
 }
 
-/* Smooth transitions */
-* {
+/* Prevent layout shift during transitions */
+.admin-content * {
     box-sizing: border-box;
+}
+
+/* Smooth transitions with transform instead of margin for better performance */
+@media (min-width: 1024px) {
+    .admin-content {
+        margin-left: 0;
+        transform: translateX(280px);
+        transition: transform 0.3s ease;
+        width: calc(100% - 280px);
+    }
+    
+    .admin-content:not(.sidebar-open) {
+        transform: translateX(0);
+        width: 100%;
+    }
 }
 
 /* Override any default margins */
 body {
     margin: 0;
+    padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    overflow-x: hidden; /* Prevent horizontal scroll during transitions */
 }

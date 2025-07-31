@@ -45,45 +45,59 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
-      <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="logo-icon">H</div>
-            <span className="logo-text">Hackathon Portal</span>
-          </div>
-          <button className="sidebar-close" onClick={onClose}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          <ul className="nav-list">
-            {menuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-                  onClick={onClose}
-                >
-                  <span className="nav-icon">{item.icon}</span>
-                  <span className="nav-label">{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="admin-info">
-            <div className="admin-avatar">A</div>
-            <div className="admin-details">
-              <div className="admin-name">Admin User</div>
-              <div className="admin-role">Administrator</div>
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+          onClick={onClose} 
+        />
+      )}
+      <aside 
+        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-xl z-50 transform transition-all duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-6 border-b border-slate-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold text-xl">
+                H
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+                Hackathon Portal
+              </span>
             </div>
+            <button 
+              className="absolute top-5 right-5 p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200"
+              onClick={onClose}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-slate-400">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
+
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <ul className="space-y-2">
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      location.pathname === item.path 
+                        ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-l-4 border-blue-400' 
+                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                    }`}
+                    onClick={onClose}
+                  >
+                    <span className={`flex items-center justify-center w-6 h-6 ${
+                      location.pathname === item.path ? 'text-blue-300' : 'text-slate-400'
+                    }`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </aside>
     </>

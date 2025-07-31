@@ -12,10 +12,13 @@ require("./middleware/googleAuth"); // import Google strategy
 const session = require("express-session"); // ✅ ADD THIS
 const passport = require("passport");
 
+const hostname = "10.19.195.192"
+
 require("./middleware/githubAuth"); // import GitHub strategy
 require("./middleware/microsoftAuth"); // import Microsoft strategy
 // require("./middleware/googleStrategy");
 require("./middleware/facebookAuth"); // import Facebook strategy
+require("./middleware/spotifyAuth"); // import Spotify strategy
 const initPassportSerialization = require("./middleware/passportSerialization");
 
 const app = express();

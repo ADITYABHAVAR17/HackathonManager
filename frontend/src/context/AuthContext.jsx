@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
         case "judge":
           navigate("/judge");
         case "team":
-          navigate("/user");
+          navigate("/home");
           break;
         default:
           navigate("/unathorized");
