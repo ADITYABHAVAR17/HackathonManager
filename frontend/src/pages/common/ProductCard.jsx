@@ -25,8 +25,13 @@ import {
   ChevronRight,
   ChevronDown,
   UserPlus,
+  Database,
+  Cpu,
+  BookOpen,
+  Shield,
+  Terminal,
 } from "lucide-react";
-import './ProductCard.css'; // Assuming you have a CSS file for styles
+import "./ProductCard.css";
 
 function ProblemCard({ problemId }) {
   const [problem, setProblem] = useState(null);
@@ -36,12 +41,14 @@ function ProblemCard({ problemId }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const [expandedTestCases, setExpandedTestCases] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`/api/problems/${id}`);
         setProblem(response.data);
+        console.log("Problem data fetched successfully:", response.data);
       } catch (err) {
         setError(err);
       } finally {
@@ -53,6 +60,10 @@ function ProblemCard({ problemId }) {
   }, [id]);
 
   const handleRegister = async () => {
+     if (!isProblemActive()) {
+    toast.error("This problem is no longer accepting submissions");
+    return;
+  }
     try {
       const res = await axios.post(
         "/api/submissions/register",
@@ -64,7 +75,6 @@ function ProblemCard({ problemId }) {
         }
       );
       toast.success(res.data.message);
-
       navigate(`/problem/:${id}`);
     } catch (err) {
       if (
@@ -73,14 +83,12 @@ function ProblemCard({ problemId }) {
         err.response.data.message.includes("Team name already exists")
       ) {
         toast.warn(err.response.data.message);
-        // Navigate to team page if already registered
         navigate(`/submit/${id}`);
       } else {
         toast.error("Something went wrong!");
         console.error(err);
       }
     }
-
     navigate(`/problem/${id}`);
   };
 
@@ -122,16 +130,19 @@ function ProblemCard({ problemId }) {
     }
   };
 
+  const toggleTestCase = (index) => {
+    setExpandedTestCases((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center relative overflow-hidden">
-        {/* Enhanced Loading Background */}
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
           <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 rounded-full blur-2xl animate-pulse delay-500"></div>
-
-          {/* Animated geometric shapes */}
           <div className="absolute top-20 right-20 w-16 h-16 border-2 border-purple-400/30 rotate-45 animate-spin-slow"></div>
           <div className="absolute bottom-32 left-32 w-12 h-12 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full animate-bounce"></div>
           <div className="absolute top-1/2 left-20 w-8 h-8 border-2 border-cyan-400/40 rounded-full animate-ping"></div>
@@ -162,13 +173,10 @@ function ProblemCard({ problemId }) {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-900 via-pink-900 to-red-900 flex items-center justify-center relative overflow-hidden">
-        {/* Enhanced Error Background */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-rose-500/5 via-transparent to-red-500/5"></div>
           <div className="absolute top-16 left-16 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-16 right-16 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-
-          {/* Error-themed shapes */}
           <div className="absolute top-1/4 right-1/4 w-6 h-6 bg-rose-400/30 rotate-45 animate-bounce delay-300"></div>
           <div className="absolute bottom-1/3 left-1/4 w-10 h-10 border-2 border-red-400/20 rounded-full animate-pulse delay-1000"></div>
         </div>
@@ -199,13 +207,10 @@ function ProblemCard({ problemId }) {
   if (!problem) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center relative overflow-hidden">
-        {/* Enhanced Not Found Background */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5"></div>
           <div className="absolute top-20 left-20 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-
-          {/* Not Found-themed elements */}
           <div className="absolute top-1/3 right-1/3 w-8 h-8 bg-blue-400/20 rounded-full animate-ping delay-500"></div>
           <div className="absolute bottom-1/4 left-1/3 w-12 h-12 border-2 border-indigo-400/30 rotate-45 animate-spin-slow delay-700"></div>
         </div>
@@ -237,35 +242,41 @@ function ProblemCard({ problemId }) {
       </div>
     );
   }
+  const calculateTimeRemaining = (endDate) => {
+    const now = new Date();
+    const end = new Date(endDate);
+    const diff = end - now;
+
+    if (diff <= 0) return "0 days";
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    return `${days}d ${hours}h ${minutes}m`;
+  };
+
+  const isProblemActive = () => {
+    return new Date(problem.endDate) > new Date();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 relative overflow-hidden">
-      {/* Enhanced Main Background with Multiple Layers */}
+      {/* Background elements */}
       <div className="absolute inset-0">
-        {/* Primary gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-800/30 via-indigo-800/20 to-blue-800/30"></div>
-
-        {/* Large background orbs with enhanced gradients */}
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-[32rem] h-[32rem] bg-gradient-to-r from-blue-500/15 to-cyan-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 rounded-full blur-3xl animate-pulse delay-500"></div>
         <div className="absolute top-1/4 right-1/4 w-72 h-72 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-full blur-3xl animate-pulse delay-1500"></div>
-
-        {/* Additional accent orbs */}
         <div className="absolute top-10 right-1/3 w-48 h-48 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl animate-pulse delay-2000"></div>
         <div className="absolute bottom-32 left-1/4 w-64 h-64 bg-gradient-to-r from-violet-500/10 to-purple-500/10 rounded-full blur-2xl animate-pulse delay-2500"></div>
-
-        {/* Geometric shapes for visual interest */}
         <div className="absolute top-32 right-32 w-16 h-16 border-2 border-purple-400/20 rotate-45 animate-spin-slow"></div>
         <div className="absolute bottom-40 left-40 w-12 h-12 border-2 border-cyan-400/25 rounded-full animate-ping delay-1000"></div>
         <div className="absolute top-2/3 right-1/3 w-8 h-8 bg-gradient-to-r from-pink-400/30 to-purple-400/30 rounded-full animate-bounce delay-500"></div>
         <div className="absolute bottom-1/4 right-1/4 w-6 h-6 bg-blue-400/25 rotate-45 animate-pulse delay-1200"></div>
-
-        {/* Diagonal light streaks */}
         <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-transparent via-purple-400/10 to-transparent transform rotate-12"></div>
         <div className="absolute top-0 right-1/3 w-1 h-full bg-gradient-to-b from-transparent via-blue-400/10 to-transparent transform -rotate-12 delay-700"></div>
-
-        {/* Subtle grid pattern overlay */}
         <div className="absolute inset-0 opacity-5">
           <div
             className="w-full h-full"
@@ -277,7 +288,7 @@ function ProblemCard({ problemId }) {
         </div>
       </div>
 
-      {/* Enhanced Floating Particles System */}
+      {/* Floating particles */}
       {[...Array(25)].map((_, i) => (
         <div
           key={i}
@@ -302,7 +313,7 @@ function ProblemCard({ problemId }) {
         ></div>
       ))}
 
-      {/* Twinkling stars effect */}
+      {/* Twinkling stars */}
       {[...Array(15)].map((_, i) => (
         <div
           key={`star-${i}`}
@@ -318,14 +329,25 @@ function ProblemCard({ problemId }) {
 
       <div className="relative z-10 py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Animated Title */}
+          {/* Title Section */}
           <div className="text-center mb-12 animate-fadeInUp relative">
             <div className="absolute -top-10 -left-10 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl"></div>
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent mb-4 relative z-10">
               {problem.title}
             </h1>
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {problem.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 text-sm font-medium rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
+          {/* Stats Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-900/60 to-indigo-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-blue-300/50 transition-all duration-300 group">
               <div className="flex items-center space-x-4">
@@ -400,26 +422,69 @@ function ProblemCard({ problemId }) {
               </div>
             </div>
 
-            <div
-              className="bg-gradient-to-br from-indigo-900/60 to-blue-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-indigo-300/50 transition-all duration-300 group cursor-pointer"
-              onClick={handleRegister}
-            >
+            {isProblemActive() ? (
+              <div
+                className="bg-gradient-to-br from-indigo-900/60 to-blue-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-indigo-300/50 transition-all duration-300 group cursor-pointer"
+                onClick={handleRegister}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="bg-gradient-to-r from-indigo-400 to-blue-400 p-3 rounded-xl group-hover:rotate-12 transition-transform duration-300">
+                    <UserPlus size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-indigo-200 text-md">Register</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-gray-900/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 transition-all duration-300 cursor-not-allowed">
+                <div className="flex items-center space-x-4 opacity-70">
+                  <div className="bg-gradient-to-r from-gray-400 to-slate-400 p-3 rounded-xl">
+                    <UserPlus size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-gray-200 text-md">Registration Closed</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Domain and Author Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-violet-900/60 to-purple-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-violet-300/50 transition-all duration-300">
               <div className="flex items-center space-x-4">
-                <div className="bg-gradient-to-r from-indigo-400 to-blue-400 p-3 rounded-xl group-hover:rotate-12 transition-transform duration-300">
-                  <UserPlus size={20} className="text-white" />
+                <div className="bg-gradient-to-r from-violet-400 to-purple-400 p-3 rounded-xl">
+                  <Database size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-indigo-200 text-md">Register</p>
+                  <p className="text-violet-200 text-sm">Domain</p>
+                  <p className="text-white font-semibold mt-1.5">
+                    {problem.domain}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-900/60 to-cyan-900/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-blue-300/50 transition-all duration-300">
+              <div className="flex items-center space-x-4">
+                <div className="bg-gradient-to-r from-blue-400 to-cyan-400 p-3 rounded-xl">
+                  <User size={20} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-blue-200 text-sm">Author</p>
+                  <p className="text-white font-semibold mt-1.5">
+                    {problem.author || "Hackathon Organizers"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Main Content Card */}
-          <div className="bg-gradient-to-br  backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
             {/* Navigation Tabs */}
-            <div className="border-b border-white/10">
-              <nav className="flex space-x-1 overflow-x-auto px-6">
+            <div className="border-b border-white/10 ">
+              <nav className="flex space-x-1 overflow-x-auto px-6 ">
                 {[
                   {
                     id: "overview",
@@ -427,6 +492,16 @@ function ProblemCard({ problemId }) {
                     icon: <FileText size={18} />,
                   },
                   { id: "details", label: "Details", icon: <Code size={18} /> },
+                  {
+                    id: "testcases",
+                    label: "Test Cases",
+                    icon: <Terminal size={18} />,
+                  },
+                  {
+                    id: "evaluation",
+                    label: "Evaluation",
+                    icon: <Award size={18} />,
+                  },
                   {
                     id: "schedule",
                     label: "Schedule",
@@ -456,64 +531,51 @@ function ProblemCard({ problemId }) {
             </div>
 
             {/* Content Sections */}
-            <div className="p-auto">
+            <div className="p-6">
               {activeTab === "overview" && (
-                <div className="space-y-10">
-                  {/* Tags */}
-
-                  <div className="text-center mb-12 animate-fadeInUp relative">
-                    <div className="absolute -top-10 -left-10 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl"></div>
-                    <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent mb-4 relative z-10"></h1>
-                    <p className="text-xl text-purple-200 max-w-3xl mx-auto relative z-10">
+                <div className="space-y-8">
+                  {/* Description */}
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
+                        <BookOpen size={20} className="text-white" />
+                      </div>
+                      <span>Description</span>
+                    </h3>
+                    <div className="text-slate-300 whitespace-pre-wrap">
                       {problem.description}
-                    </p>
+                    </div>
                   </div>
 
-                  {/* Partners */}
-                  {problem.partners && problem.partners.length > 0 && (
-                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
-                      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-2 rounded-lg">
-                          <Users size={20} className="text-white" />
-                        </div>
-                        <span>Partners</span>
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {problem.partners.map((partner, index) => (
-                          <div
-                            key={index}
-                            className="bg-slate-700/50 p-5 rounded-xl border border-slate-600 hover:border-slate-400 transition-all shadow-sm hover:shadow-lg hover:shadow-purple-500/10"
-                          >
-                            <div className="flex items-center space-x-4">
-                              {partner.logoUrl && (
-                                <div className="flex-shrink-0">
-                                  <img
-                                    src={partner.logoUrl}
-                                    alt={partner.name}
-                                    className="w-12 h-12 rounded-lg object-contain bg-white p-1"
-                                  />
-                                </div>
-                              )}
-                              <div>
-                                <h4 className="font-bold text-white">
-                                  {partner.name}
-                                </h4>
-                                {partner.websiteUrl && (
-                                  <a
-                                    href={partner.websiteUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-cyan-400 text-sm hover:underline flex items-center gap-1 mt-1"
-                                  >
-                                    <ExternalLink size={16} />
-                                    Visit Website
-                                  </a>
-                                )}
-                              </div>
+                  {/* Sample Input/Output */}
+                  {(problem.sampleInput || problem.sampleOutput) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {problem.sampleInput && (
+                        <div className="bg-slate-800/50 rounded-2xl p-6 border border-blue-400/20">
+                          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg">
+                              <Code size={20} className="text-white" />
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                            <span>Sample Input</span>
+                          </h3>
+                          <pre className="text-slate-200 bg-slate-900/50 p-4 rounded-lg border border-blue-500/20 overflow-x-auto">
+                            {problem.sampleInput}
+                          </pre>
+                        </div>
+                      )}
+                      {problem.sampleOutput && (
+                        <div className="bg-slate-800/50 rounded-2xl p-6 border border-green-400/20">
+                          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-lg">
+                              <FileText size={20} className="text-white" />
+                            </div>
+                            <span>Sample Output</span>
+                          </h3>
+                          <pre className="text-slate-200 bg-slate-900/50 p-4 rounded-lg border border-green-500/20 overflow-x-auto">
+                            {problem.sampleOutput}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -524,7 +586,7 @@ function ProblemCard({ problemId }) {
                   {/* Input/Output Format */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {problem.inputFormat && (
-                      <div className="bg-slate-800/50 rounded-2xl p-6 border border-blue-400/20 hover:border-blue-400/40 transition-all">
+                      <div className="bg-slate-800/50 rounded-2xl p-6 border border-blue-400/20">
                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                           <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg">
                             <Code size={20} className="text-white" />
@@ -538,7 +600,7 @@ function ProblemCard({ problemId }) {
                     )}
 
                     {problem.outputFormat && (
-                      <div className="bg-slate-800/50 rounded-2xl p-6 border border-green-400/20 hover:border-green-400/40 transition-all">
+                      <div className="bg-slate-800/50 rounded-2xl p-6 border border-green-400/20">
                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                           <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-lg">
                             <FileText size={20} className="text-white" />
@@ -554,7 +616,7 @@ function ProblemCard({ problemId }) {
 
                   {/* Constraints */}
                   {problem.constraints && (
-                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-amber-400/20 hover:border-amber-400/40 transition-all">
+                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-amber-400/20">
                       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                         <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-2 rounded-lg">
                           <AlertCircle size={20} className="text-white" />
@@ -566,10 +628,96 @@ function ProblemCard({ problemId }) {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
 
+              {activeTab === "testcases" && (
+                <div className="space-y-6">
+                  {problem.testCases && problem.testCases.length > 0 ? (
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                        <div className="bg-gradient-to-r from-indigo-500 to-blue-500 p-2 rounded-lg">
+                          <Terminal size={20} className="text-white" />
+                        </div>
+                        <span>Test Cases</span>
+                      </h3>
+                      <div className="space-y-4">
+                        {problem.testCases.map((testCase, index) => (
+                          <div
+                            key={index}
+                            className="bg-slate-800/50 rounded-xl border border-slate-600 overflow-hidden"
+                          >
+                            <button
+                              className="w-full flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors"
+                              onClick={() => toggleTestCase(index)}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-indigo-500/30 to-blue-500/30 text-indigo-200 rounded-full border border-indigo-400/30">
+                                  Test Case {index + 1}
+                                </span>
+                                <span className="text-white font-medium">
+                                  {testCase.isPublic ? "Public" : "Private"}
+                                </span>
+                              </div>
+                              {expandedTestCases.includes(index) ? (
+                                <ChevronDown
+                                  size={20}
+                                  className="text-slate-400"
+                                />
+                              ) : (
+                                <ChevronRight
+                                  size={20}
+                                  className="text-slate-400"
+                                />
+                              )}
+                            </button>
+                            {expandedTestCases.includes(index) && (
+                              <div className="p-4 border-t border-slate-600/50 bg-slate-900/30">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h4 className="text-sm font-medium text-slate-300 mb-2">
+                                      Input
+                                    </h4>
+                                    <pre className="text-slate-200 bg-slate-900/50 p-3 rounded-lg border border-blue-500/20 overflow-x-auto text-sm">
+                                      {testCase.input}
+                                    </pre>
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-medium text-slate-300 mb-2">
+                                      Expected Output
+                                    </h4>
+                                    <pre className="text-slate-200 bg-slate-900/50 p-3 rounded-lg border border-green-500/20 overflow-x-auto text-sm">
+                                      {testCase.output}
+                                    </pre>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="bg-slate-700/50 text-slate-400 w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center">
+                        <Terminal size={32} />
+                      </div>
+                      <h4 className="text-lg font-medium text-white mb-2">
+                        No Test Cases Available
+                      </h4>
+                      <p className="text-slate-400 max-w-md mx-auto">
+                        Test cases will be provided upon submission.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "evaluation" && (
+                <div className="space-y-8">
                   {/* Evaluation Criteria */}
                   {problem.evaluationCriteria && (
-                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-purple-400/20 hover:border-purple-400/40 transition-all">
+                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-purple-400/20">
                       <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
                         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
                           <Award size={20} className="text-white" />
@@ -595,87 +743,90 @@ function ProblemCard({ problemId }) {
                       </div>
                     </div>
                   )}
+
+                  {/* Accepted Submissions */}
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-emerald-400/20">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                      <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-2 rounded-lg">
+                        <CheckCircle size={20} className="text-white" />
+                      </div>
+                      <span>Accepted Submissions</span>
+                    </h3>
+                    <div className="flex items-center justify-center">
+                      <div className="text-5xl font-bold text-emerald-400">
+                        {problem.acceptedSubmissions || 0}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeTab === "schedule" && (
                 <div className="space-y-6">
-                  {problem.schedule && problem.schedule.length > 0 ? (
-                    <div className="space-y-5">
-                      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                        <div className="bg-gradient-to-r from-indigo-500 to-blue-500 p-2 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-blue-400/20 hover:border-blue-400/40 transition-all">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-lg">
                           <Calendar size={20} className="text-white" />
                         </div>
-                        <span>Event Schedule</span>
+                        <h3 className="text-xl font-bold text-white">
+                          Start Date
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock size={18} className="text-blue-300" />
+                        <div className="text-slate-200 text-lg font-medium">
+                          {formatDate(problem.startDate)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-rose-400/20 hover:border-rose-400/40 transition-all">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="bg-gradient-to-r from-rose-500 to-pink-500 p-3 rounded-lg">
+                          <Calendar size={20} className="text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">
+                          End Date
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock size={18} className="text-rose-300" />
+                        <div className="text-slate-200 text-lg font-medium">
+                          {formatDate(problem.endDate)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-purple-400/20">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="bg-gradient-to-r from-purple-500 to-indigo-500 p-3 rounded-lg">
+                        <Clock size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white">
+                        Time Remaining
                       </h3>
-                      <div className="space-y-4">
-                        {problem.schedule.map((stage, index) => (
-                          <div
-                            key={index}
-                            className="bg-slate-800/50 p-6 rounded-xl border border-slate-600 hover:border-slate-400 transition-all shadow-sm hover:shadow-lg hover:shadow-blue-500/10"
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-indigo-500/30 to-blue-500/30 text-indigo-200 rounded-full border border-indigo-400/30">
-                                    STAGE {index + 1}
-                                  </span>
-                                  <h4 className="font-bold text-white text-lg">
-                                    {stage.stage}
-                                  </h4>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="flex items-start gap-3">
-                                    <div className="bg-gradient-to-r from-blue-500/30 to-cyan-500/30 p-2 rounded-lg text-blue-200">
-                                      <Calendar size={18} />
-                                    </div>
-                                    <div>
-                                      <div className="text-sm text-slate-300">
-                                        Start Time
-                                      </div>
-                                      <div className="font-medium text-white">
-                                        {formatDate(stage.startTime)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start gap-3">
-                                    <div className="bg-gradient-to-r from-rose-500/30 to-pink-500/30 p-2 rounded-lg text-rose-200">
-                                      <Clock size={18} />
-                                    </div>
-                                    <div>
-                                      <div className="text-sm text-slate-300">
-                                        End Time
-                                      </div>
-                                      <div className="font-medium text-white">
-                                        {formatDate(stage.endTime)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg text-sm font-medium transition-all shadow-sm hover:shadow-lg hover:shadow-blue-500/30">
-                                  View Details
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="bg-slate-700/50 text-slate-400 w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center">
-                        <Calendar size={32} />
-                      </div>
-                      <h4 className="text-lg font-medium text-white mb-2">
-                        No Schedule Available
-                      </h4>
-                      <p className="text-slate-400 max-w-md mx-auto">
-                        Check back later for updates on the event schedule.
-                      </p>
+                    <div className="text-slate-200">
+                      {new Date(problem.endDate) > new Date() ? (
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                          <span>
+                            Event is active -{" "}
+                            {calculateTimeRemaining(problem.endDate)} remaining
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                          <span>
+                            Event ended on {formatDate(problem.endDate)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 
